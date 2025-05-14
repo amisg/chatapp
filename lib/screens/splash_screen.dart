@@ -1,8 +1,8 @@
 import 'dart:developer';
 
+import 'package:chatapp/api/apis.dart';
 import 'package:chatapp/screens/auth/login_screen.dart';
 import 'package:chatapp/screens/home_sreen.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -27,8 +27,8 @@ class _SplashScreenState extends State<SplashScreen> {
       );
 
       //navigate to home screen
-      if (FirebaseAuth.instance.currentUser != null) {
-        log('\nUser: ${FirebaseAuth.instance.currentUser}');
+      if (Apis.auth.currentUser != null) {
+        log('\nUser: ${Apis.auth.currentUser}');
         //navigate to home screen
         Navigator.pushReplacement(
           context,
