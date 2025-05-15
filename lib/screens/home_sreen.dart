@@ -1,7 +1,6 @@
-import 'dart:developer';
-
 import 'package:chatapp/api/apis.dart';
 import 'package:chatapp/main.dart';
+import 'package:chatapp/models/chat_user.dart';
 import 'package:chatapp/widgets/chat_user_card.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +14,7 @@ class HomeSreen extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomeSreen> {
+  List<ChatUser> list = [];
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -45,25 +45,37 @@ class _HomePageState extends State<HomeSreen> {
       body: StreamBuilder(
         stream: Apis.firestore.collection('users').snapshots(),
         builder: (context, snapshot) {
-          final list = [];
+          switch (snapshot.connectionState) {
+            //if data is loading
+            case ConnectionState.waiting:
+            case ConnectionState.none:
+              return const Center(child: CircularProgressIndicator());
 
-          if (snapshot.hasData) {
-            final data = snapshot.data?.docs;
-            for (var i in data!) {
-              log('Data: ${i.data()}');
-              list.add(i.data()['name']);
-            }
+            case ConnectionState.active:
+            case ConnectionState.done:
+              final data = snapshot.data?.docs;
+              list =
+                  data?.map((e) => ChatUser.fromJson(e.data())).toList() ?? [];
+
+              if (list.isNotEmpty) {
+                return ListView.builder(
+                  itemCount: list.length,
+                  padding: EdgeInsets.only(top: mq.height * .01),
+                  physics: const BouncingScrollPhysics(),
+                  itemBuilder: (context, index) {
+                    return ChatUserCard(user: list[index]);
+                    // return Text('Name: ${list[index]}');
+                  },
+                );
+              } else {
+                return const Center(
+                  child: Text(
+                    'No Connections Found!',
+                    style: TextStyle(fontSize: 20),
+                  ),
+                );
+              }
           }
-
-          return ListView.builder(
-            itemCount: list.length,
-            padding: EdgeInsets.only(top: mq.height * .01),
-            physics: const BouncingScrollPhysics(),
-            itemBuilder: (context, index) {
-              // return const ChatUserCard();
-              return Text('Name: ${list[index]}');
-            },
-          );
         },
       ),
     );
