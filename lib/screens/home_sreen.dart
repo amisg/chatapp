@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:chatapp/api/apis.dart';
 import 'package:chatapp/main.dart';
 import 'package:chatapp/widgets/chat_user_card.dart';
@@ -40,12 +42,28 @@ class _HomePageState extends State<HomeSreen> {
           child: const Icon(Icons.add_box),
         ),
       ),
-      body: ListView.builder(
-        itemCount: 16,
-        padding: EdgeInsets.only(top: mq.height * .01),
-        physics: const BouncingScrollPhysics(),
-        itemBuilder: (context, index) {
-          return const ChatUserCard();
+      body: StreamBuilder(
+        stream: Apis.firestore.collection('users').snapshots(),
+        builder: (context, snapshot) {
+          final list = [];
+
+          if (snapshot.hasData) {
+            final data = snapshot.data?.docs;
+            for (var i in data!) {
+              log('Data: ${i.data()}');
+              list.add(i.data()['name']);
+            }
+          }
+
+          return ListView.builder(
+            itemCount: list.length,
+            padding: EdgeInsets.only(top: mq.height * .01),
+            physics: const BouncingScrollPhysics(),
+            itemBuilder: (context, index) {
+              // return const ChatUserCard();
+              return Text('Name: ${list[index]}');
+            },
+          );
         },
       ),
     );
