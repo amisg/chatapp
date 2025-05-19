@@ -16,7 +16,13 @@ class HomeSreen extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomeSreen> {
-  List<ChatUser> list = [];
+  List<ChatUser> _list = [];
+
+  // for storing searched items
+  final List<ChatUser> _searchList = [];
+  // for storing search status
+  bool _isSearching = false;
+
   @override
   void initState() {
     super.initState();
@@ -29,10 +35,47 @@ class _HomePageState extends State<HomeSreen> {
       //app bar
       appBar: AppBar(
         leading: const Icon(CupertinoIcons.home),
-        title: const Text('Chat App'),
+        title:
+            _isSearching
+                ? TextField(
+                  decoration: const InputDecoration(
+                    border: InputBorder.none,
+                    hintText: 'Name, Email, ...',
+                  ),
+                  autofocus: true,
+                  style: const TextStyle(fontSize: 17, letterSpacing: 0.5),
+                  //when search text changes then updated search list
+                  onChanged: (val) {
+                    setState(() {
+                      _searchList.clear();
+                      _searchList.addAll(
+                        _list.where(
+                          (user) =>
+                              user.name.toLowerCase().contains(
+                                val.toLowerCase(),
+                              ) ||
+                              user.email.toLowerCase().contains(
+                                val.toLowerCase(),
+                              ),
+                        ),
+                      );
+                    });
+                  },
+                )
+                : const Text('Chat App'),
         actions: [
           //search user button
-          IconButton(onPressed: () {}, icon: const Icon(Icons.search)),
+          //search user button
+          IconButton(
+            onPressed: () {
+              setState(() {
+                _isSearching = !_isSearching;
+              });
+            },
+            icon: Icon(
+              _isSearching ? CupertinoIcons.clear_circled_solid : Icons.search,
+            ),
+          ),
 
           //more features button
           IconButton(
@@ -70,16 +113,18 @@ class _HomePageState extends State<HomeSreen> {
             case ConnectionState.active:
             case ConnectionState.done:
               final data = snapshot.data?.docs;
-              list =
+              _list =
                   data?.map((e) => ChatUser.fromJson(e.data())).toList() ?? [];
 
-              if (list.isNotEmpty) {
+              if (_list.isNotEmpty) {
                 return ListView.builder(
-                  itemCount: list.length,
+                  itemCount: _isSearching ? _searchList.length : _list.length,
                   padding: EdgeInsets.only(top: mq.height * .01),
                   physics: const BouncingScrollPhysics(),
                   itemBuilder: (context, index) {
-                    return ChatUserCard(user: list[index]);
+                    return ChatUserCard(
+                      user: _isSearching ? _searchList[index] : _list[index],
+                    );
                     // return Text('Name: ${list[index]}');
                   },
                 );
