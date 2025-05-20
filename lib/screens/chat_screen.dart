@@ -1,6 +1,12 @@
+import 'dart:convert';
+import 'dart:developer';
+
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:chatapp/api/apis.dart';
 import 'package:chatapp/main.dart';
 import 'package:chatapp/models/chat_user.dart';
+import 'package:chatapp/models/message.dart';
+import 'package:chatapp/widgets/message_card.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -13,6 +19,8 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
+  //for storing messages
+  List<Message> _list = [];
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -23,8 +31,75 @@ class _ChatScreenState extends State<ChatScreen> {
           flexibleSpace: _appBar(),
         ),
 
+        backgroundColor: const Color.fromARGB(255, 234, 248, 255),
         //body
-        body: Column(children: [_chatInput()]),
+        body: Column(
+          children: [
+            Expanded(
+              child: StreamBuilder(
+                stream: Apis.getAllMessages(),
+                builder: (context, snapshot) {
+                  switch (snapshot.connectionState) {
+                    //if data is loading
+                    case ConnectionState.waiting:
+                    case ConnectionState.none:
+                      return const Center(child: CircularProgressIndicator());
+
+                    //if some or all data is loaded then show it
+                    case ConnectionState.active:
+                    case ConnectionState.done:
+                      final data = snapshot.data?.docs;
+                      log('Data: ${jsonEncode(data![0].data())}');
+                      // _list =
+                      //     data?.map((e) => ChatUser.fromJson(e.data())).toList() ??
+                      //         [];
+
+                      _list.clear();
+                      _list.add(
+                        Message(
+                          toId: 'xyz',
+                          msg: 'Hii',
+                          read: '',
+                          type: Type.text,
+                          fromId: Apis.user.uid,
+                          sent: '12:00 AM',
+                        ),
+                      );
+                      _list.add(
+                        Message(
+                          toId: Apis.user.uid,
+                          msg: 'Hello',
+                          read: '',
+                          type: Type.text,
+                          fromId: 'xyz',
+                          sent: '12:05 AM',
+                        ),
+                      );
+
+                      if (_list.isNotEmpty) {
+                        return ListView.builder(
+                          itemCount: _list.length,
+                          padding: EdgeInsets.only(top: mq.height * .01),
+                          physics: const BouncingScrollPhysics(),
+                          itemBuilder: (context, index) {
+                            return MessageCard(message: _list[index]);
+                          },
+                        );
+                      } else {
+                        return const Center(
+                          child: Text(
+                            'Say Hii! 👋',
+                            style: TextStyle(fontSize: 20),
+                          ),
+                        );
+                      }
+                  }
+                },
+              ),
+            ),
+            _chatInput(),
+          ],
+        ),
       ),
     );
   }
