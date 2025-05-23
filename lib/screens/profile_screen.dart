@@ -1,4 +1,4 @@
-// ignore_for_file: unused_import
+// ignore_for_file: unused_import, use_build_context_synchronously
 
 import 'dart:developer';
 import 'dart:io';
@@ -9,6 +9,7 @@ import 'package:chatapp/helper/dialogs.dart';
 import 'package:chatapp/main.dart';
 import 'package:chatapp/models/chat_user.dart';
 import 'package:chatapp/screens/auth/login_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -43,6 +44,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             onPressed: () async {
               Dialogs.showProgressBar(context);
 
+              await Apis.updateActiveStatus(false);
+
               //sign out from app
               await Apis.auth.signOut().then((value) async {
                 await GoogleSignIn().signOut().then((value) {
@@ -51,6 +54,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                   //for moving to home screen
                   Navigator.pop(context);
+                  Apis.auth = FirebaseAuth.instance;
 
                   //replacing home screen with login screen
                   Navigator.pushReplacement(
