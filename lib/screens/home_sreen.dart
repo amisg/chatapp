@@ -1,11 +1,14 @@
 // ignore_for_file: deprecated_member_use
 
+import 'dart:developer';
+
 import 'package:chatapp/api/apis.dart';
 import 'package:chatapp/main.dart';
 import 'package:chatapp/models/chat_user.dart';
 import 'package:chatapp/widgets/chat_user_card.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import 'profile_screen.dart';
@@ -29,6 +32,20 @@ class _HomePageState extends State<HomeSreen> {
   void initState() {
     super.initState();
     Apis.getSelfInfo();
+    //for setting user status to active
+    Apis.updateActiveStatus(true);
+
+    //for updating user active status according to lifecycle events
+    //resume -- active or online
+    //pause  -- inactive or offline
+    SystemChannels.lifecycle.setMessageHandler((message) {
+      log('Message: $message');
+
+      if (message.toString().contains('resume')) Apis.updateActiveStatus(true);
+      if (message.toString().contains('pause')) Apis.updateActiveStatus(false);
+
+      return Future.value(message);
+    });
   }
 
   @override
