@@ -47,6 +47,7 @@ class Apis {
       "message": {
         "token": chatUser.pushToken,
         "notification": {"title": me.name, "body": msg},
+        "data": {"userId": me.id},
       },
     };
     try {
